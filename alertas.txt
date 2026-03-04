@@ -1,0 +1,18 @@
+
+Asunto: Resumen de tarjeta de crédito - Vto. 10/MAR/2026
+Remitente: Informes Naranja X <avisos@info.naranjax.com>
+Palabras detectadas: ['confidencial']
+Adjuntos sospechosos: []
+----------------------------------------
+
+Asunto: confidencial - contraseña
+Remitente: Natalia Aguero <natyaguero82@gmail.com>
+Palabras detectadas: ['confidencial', 'contraseña']
+Adjuntos sospechosos: []
+----------------------------------------
+
+Asunto: Resumen de tarjeta de crédito - Vto. 10/MAR/2026
+Remitente: Informes Naranja X <avisos@info.naranjax.com>
+Palabras detectadas: ['confidencial']
+Adjuntos sospechosos: []
+----------------------------------------
