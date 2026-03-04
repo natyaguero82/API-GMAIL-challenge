@@ -109,7 +109,7 @@ def analyze_emails(service):
 
        if detected_words or suspicious_attachments:
             alert_message = f"""
-event_time
+Event Time: {event_time}
 Asunto: {subject}
 Remitente: {sender}
 Palabras detectadas: {detected_words}
