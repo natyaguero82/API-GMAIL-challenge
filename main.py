@@ -5,11 +5,22 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
+#Librerias de google para auntenticacion OAuth 2.0
+#conexion por API y servicio de correo
+#Gestion de credenciales
+
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+
+#Permisos solo lectura, minizar riesgos
 
 KEYWORDS = ["confidencial", "contraseña"]
 WHITELIST_DOMAINS = ["empresa.com", "google.com"]
 SUSPICIOUS_EXTENSIONS = [".zip", ".exe", ".js", ".bat"]
+
+#Reglas de deteccion
+#palabras que se buscaran en los correos ya sea en asunto o body
+#dominios de confianza para whitelist
+#tipos de extensiones no confiables.
 
 
 def authenticate():
@@ -28,6 +39,9 @@ def authenticate():
 
     return creds
 
+#Funcion de inicio de sesion en gmail
+#validacion de token 
+#retorna credenciales
 
 def get_email_body(payload):
     if 'parts' in payload:
@@ -41,6 +55,9 @@ def get_email_body(payload):
             return base64.urlsafe_b64decode(data).decode('utf-8')
 
     return ""
+
+#Funcion para extraer el texto del body
+#decodificando contendio base64
 
 
 def analyze_emails(service):
@@ -60,6 +77,9 @@ def analyze_emails(service):
             if header['name'] == 'From':
                 sender = header['value']
 
+        #Funcion de analisis a los ultimos 10 correos
+        #obtiene asunto y remitente
+
         # Whitelist
         sender_domain = sender.split('@')[-1].replace('>', '')
         if any(domain in sender_domain for domain in WHITELIST_DOMAINS):
@@ -68,7 +88,13 @@ def analyze_emails(service):
         body = get_email_body(msg_data['payload'])
         full_text = (subject + " " + body).lower()
 
+    #Analisa el contenido 
+    #une asunto + cuerpo
+    #convierte a minusculas
+
         detected_words = [word for word in KEYWORDS if word in full_text]
+
+        #detecta palabras sensibles
 
         suspicious_attachments = []
         if 'parts' in msg_data['payload']:
@@ -79,6 +105,8 @@ def analyze_emails(service):
                         if filename.endswith(ext):
                             suspicious_attachments.append(filename)
 
+        #analisis de adjunto
+
         if detected_words or suspicious_attachments:
             alert_message = f"""
 Asunto: {subject}
@@ -88,10 +116,15 @@ Adjuntos sospechosos: {suspicious_attachments}
 ----------------------------------------
 """
 
+#genera alertas
+
             print(alert_message)
 
             with open("alertas.txt", "a", encoding="utf-8") as f:
                 f.write(alert_message)
+
+#muesta de alerta
+#guarda en el archivo
 
 
 def main():
@@ -99,6 +132,12 @@ def main():
     service = build('gmail', 'v1', credentials=creds)
     analyze_emails(service)
 
+#auntenticacion contra gmail
+#creaciones de servicio de gmail usando credenciales
+#analisis de correos
+
 
 if __name__ == '__main__':
     main()
+
+#se ejecuta solo si se usa este archivo
