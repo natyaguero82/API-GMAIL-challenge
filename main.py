@@ -4,14 +4,19 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from datetime import datetime
 
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+# Librerías de Google para autenticación OAuth 2.0
+# Conexión por API y servicio de correo
+# Gestión de credenciales
+
+SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']  # Permisos solo lectura
 
 KEYWORDS = ["confidencial", "contraseña"]
 WHITELIST_DOMAINS = ["empresa.com", "google.com"]
 SUSPICIOUS_EXTENSIONS = [".zip", ".exe", ".js", ".bat"]
 
-
+# Función de inicio de sesión en Gmail
 def authenticate():
     creds = None
 
@@ -19,8 +24,7 @@ def authenticate():
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
 
     if not creds or not creds.valid:
-        flow = InstalledAppFlow.from_client_secrets_file(
-            'credentials.json', SCOPES)
+        flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
         creds = flow.run_local_server(port=0)
 
         with open('token.json', 'w') as token:
@@ -28,7 +32,7 @@ def authenticate():
 
     return creds
 
-
+# Función para extraer el texto del body decodificando contenido base64
 def get_email_body(payload):
     if 'parts' in payload:
         for part in payload['parts']:
@@ -42,7 +46,7 @@ def get_email_body(payload):
 
     return ""
 
-
+# Función para analizar los últimos correos
 def analyze_emails(service):
     results = service.users().messages().list(userId='me', maxResults=10).execute()
     messages = results.get('messages', [])
@@ -68,8 +72,10 @@ def analyze_emails(service):
         body = get_email_body(msg_data['payload'])
         full_text = (subject + " " + body).lower()
 
+        # Detecta palabras sensibles
         detected_words = [word for word in KEYWORDS if word in full_text]
 
+        # Analiza adjuntos sospechosos
         suspicious_attachments = []
         if 'parts' in msg_data['payload']:
             for part in msg_data['payload']['parts']:
@@ -79,8 +85,11 @@ def analyze_emails(service):
                         if filename.endswith(ext):
                             suspicious_attachments.append(filename)
 
+        # Genera alerta si se detectan palabras o adjuntos sospechosos
         if detected_words or suspicious_attachments:
+            event_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
             alert_message = f"""
+Event Time: {event_time}
 Asunto: {subject}
 Remitente: {sender}
 Palabras detectadas: {detected_words}
@@ -93,12 +102,11 @@ Adjuntos sospechosos: {suspicious_attachments}
             with open("alertas.txt", "a", encoding="utf-8") as f:
                 f.write(alert_message)
 
-
+# Función principal
 def main():
     creds = authenticate()
     service = build('gmail', 'v1', credentials=creds)
     analyze_emails(service)
-
 
 if __name__ == '__main__':
     main()
